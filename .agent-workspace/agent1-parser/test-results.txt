@@ -1,10 +1,10 @@
 
 Training Plan Parser Test Results
-Generated: 2025-11-23T02:13:37.242Z
+Generated: 2025-11-23T13:52:24.886Z
 
 PERFORMANCE
 -----------
-Parsing time: 11ms
+Parsing time: 10ms
 Target: <500ms
 Status: PASS
 

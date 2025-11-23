@@ -29,9 +29,21 @@ async function parseTrainingFile(file) {
         const data = new Uint8Array(e.target.result);
         const workbook = XLSX.read(data, { type: 'array' });
 
+        // Validate: Check if workbook has sheets
+        if (!workbook.SheetNames || workbook.SheetNames.length === 0) {
+          reject(new Error('Excel file is empty or contains no sheets'));
+          return;
+        }
+
         // Get the first sheet
         const sheetName = workbook.SheetNames[0];
         const worksheet = workbook.Sheets[sheetName];
+
+        // Validate: Check if worksheet exists and has data
+        if (!worksheet || !worksheet['!ref']) {
+          reject(new Error('First sheet is empty'));
+          return;
+        }
 
         // Convert to array of arrays (rows)
         const rows = XLSX.utils.sheet_to_json(worksheet, {
@@ -40,8 +52,20 @@ async function parseTrainingFile(file) {
           blankrows: true
         });
 
+        // Validate: Check if there's actual data (at least 2 rows: header + data)
+        if (rows.length < 2) {
+          reject(new Error('Excel file must contain at least 2 rows (header + data)'));
+          return;
+        }
+
         // Parse the rows into a knowledge base
         const kb = parseRows(rows);
+
+        // Validate: Check if parsing produced any results
+        if (kb.weeks.length === 0) {
+          reject(new Error('No training data found in file. Please check file format.'));
+          return;
+        }
 
         const endTime = performance.now();
         console.log(`Parsing completed in ${(endTime - startTime).toFixed(2)}ms`);
@@ -530,6 +554,7 @@ if (typeof module !== 'undefined' && module.exports) {
     parseTrainingInfo,
     isWeekRow,
     isTrainingRow,
-    isBlockRow
+    isBlockRow,
+    getCellValue
   };
 }

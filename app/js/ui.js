@@ -25,8 +25,16 @@ class UIController {
         this.bindSearchEvents();
         this.bindTimerEvents();
         this.initializeTimer();
+
+        // Check for saved data and show appropriate section
         this.checkForSavedData();
-        this.showSection('timer'); // Start with timer section
+
+        // Show upload section if no data, otherwise show knowledge base
+        if (this.knowledgeBase) {
+            this.showSection('knowledge-base');
+        } else {
+            this.showSection('upload');
+        }
     }
 
     /**
@@ -158,8 +166,16 @@ class UIController {
      * Handle file upload
      */
     async handleFileUpload(file) {
+        // Validate file type
         if (!file.name.match(/\.(xlsx|xls)$/i)) {
             this.showToast('Please upload an Excel file (.xlsx or .xls)', 'error');
+            return;
+        }
+
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024; // 10MB in bytes
+        if (file.size > maxSize) {
+            this.showToast('File too large. Maximum size is 10MB', 'error');
             return;
         }
 
@@ -183,10 +199,45 @@ class UIController {
             }
         } catch (error) {
             console.error('Error parsing file:', error);
-            this.showToast('Error parsing file: ' + error.message, 'error');
+            const userMessage = this.getUserFriendlyError(error.message);
+            this.showToast(userMessage, 'error');
         } finally {
             this.hideLoadingState();
         }
+    }
+
+    /**
+     * Convert technical error messages to user-friendly ones
+     */
+    getUserFriendlyError(technicalError) {
+        if (!technicalError) {
+            return 'An unexpected error occurred. Please try again.';
+        }
+
+        const lowerError = technicalError.toLowerCase();
+
+        // Map technical errors to user-friendly messages
+        const errorMap = {
+            'empty or contains no sheets': 'The Excel file is empty. Please upload a file with training data.',
+            'first sheet is empty': 'The first sheet in your Excel file is empty. Please check the file.',
+            'must contain at least 2 rows': 'Your Excel file needs at least a header row and one data row. Please check the file format.',
+            'no training data found': 'We couldn\'t find any training data in your file. Please make sure it\'s formatted correctly with weeks and trainings.',
+            'failed to read file': 'We couldn\'t read your file. It may be corrupted. Please try exporting it again.',
+            'cannot read property': 'The file format seems incorrect. Please make sure it\'s a valid training plan Excel file.',
+            'undefined': 'The file format seems incorrect. Please make sure it\'s a valid training plan Excel file.',
+            'corrupt': 'The file appears to be corrupted. Please try exporting it again from Excel.',
+            'invalid': 'The file format is not valid. Please upload a .xlsx or .xls file.'
+        };
+
+        // Find matching error message
+        for (const [key, message] of Object.entries(errorMap)) {
+            if (lowerError.includes(key)) {
+                return message;
+            }
+        }
+
+        // Default fallback message with hint
+        return `We couldn't process your file. ${technicalError}. Please make sure it's a valid training plan Excel file.`;
     }
 
     /**
