@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Training Plan Parser & Manager - Beautiful, phone-friendly UI with Tabata timer">
+    <title>TrainingPlan - Your Personal Training Manager</title>
+
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header/Navigation -->
+    <header id="main-header">
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="logo">
+                    <i class="fas fa-dumbbell"></i>
+                    <span class="logo-text">TrainingPlan</span>
+                </div>
+
+                <!-- Desktop Navigation -->
+                <ul class="nav-menu" id="nav-menu">
+                    <li class="nav-item">
+                        <a href="#upload-section" class="nav-link" data-section="upload">
+                            <i class="fas fa-upload"></i>
+                            <span>Upload</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#knowledge-base" class="nav-link" data-section="knowledge-base">
+                            <i class="fas fa-book"></i>
+                            <span>Knowledge Base</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#search-section" class="nav-link" data-section="search">
+                            <i class="fas fa-search"></i>
+                            <span>Search</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#timer-section" class="nav-link active" data-section="timer">
+                            <i class="fas fa-stopwatch"></i>
+                            <span>Timer</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#editor-section" class="nav-link" data-section="editor">
+                            <i class="fas fa-edit"></i>
+                            <span>Editor</span>
+                        </a>
+                    </li>
+                </ul>
+
+                <!-- Mobile Menu Toggle -->
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle navigation menu">
+                    <span class="hamburger"></span>
+                    <span class="hamburger"></span>
+                    <span class="hamburger"></span>
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content Container -->
+    <main id="main-content">
+
+        <!-- File Upload Section -->
+        <section id="upload-section" class="section">
+            <div class="section-container">
+                <div class="upload-hero">
+                    <h1 class="section-title">Welcome to TrainingPlan</h1>
+                    <p class="section-subtitle">Upload your training.xlsx file to get started</p>
+                </div>
+
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                        <h3>Drag & Drop Your File Here</h3>
+                        <p>or click to browse</p>
+                        <input type="file" id="file-input" accept=".xlsx,.xls" hidden>
+                        <button class="btn btn-primary btn-upload" id="btn-upload">
+                            <i class="fas fa-file-excel"></i>
+                            Choose File
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-status" id="upload-status" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p class="status-text">Parsing your training file...</p>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Knowledge Base Section -->
+        <section id="knowledge-base" class="section" style="display: none;">
+            <div class="section-container knowledge-container">
+                <!-- Sidebar with Week/Training List -->
+                <aside class="sidebar" id="training-sidebar">
+                    <div class="sidebar-header">
+                        <h2>Training Plan</h2>
+                        <button class="btn-icon" id="collapse-all" aria-label="Collapse all weeks">
+                            <i class="fas fa-compress-alt"></i>
+                        </button>
+                    </div>
+
+                    <div class="week-list" id="week-list">
+                        <!-- Dynamically populated by ui.js -->
+                        <!-- Example structure:
+                        <div class="week-item">
+                            <div class="week-header">
+                                <h3>Неделя 1</h3>
+                                <button class="expand-btn"><i class="fas fa-chevron-down"></i></button>
+                            </div>
+                            <div class="training-list">
+                                <div class="training-item active">Тренировка 1</div>
+                                <div class="training-item">Тренировка 2</div>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                </aside>
+
+                <!-- Main Content: Training Detail -->
+                <div class="main-content">
+                    <div class="training-detail" id="training-detail">
+                        <div class="empty-state">
+                            <i class="fas fa-dumbbell"></i>
+                            <h3>Select a training to view details</h3>
+                            <p>Choose a training from the sidebar</p>
+                        </div>
+
+                        <!-- Training detail will be populated here -->
+                        <!-- Example structure:
+                        <div class="training-header">
+                            <h1>Тренировка 1</h1>
+                            <div class="training-meta">
+                                <span class="meta-item"><i class="fas fa-calendar"></i> Неделя 1</span>
+                                <span class="meta-item"><i class="fas fa-fire"></i> Интенсивность: 70%</span>
+                            </div>
+                        </div>
+
+                        <div class="exercise-blocks">
+                            <div class="block-card">
+                                <h3 class="block-title">Блок A</h3>
+                                <div class="exercise-list">
+                                    <div class="exercise-item">
+                                        <div class="exercise-header">
+                                            <span class="exercise-name">Подтягивания</span>
+                                            <span class="exercise-sets">3х8-12</span>
+                                        </div>
+                                        <div class="exercise-meta">
+                                            <span class="set-type">Working sets</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Search/Filter Section -->
+        <section id="search-section" class="section" style="display: none;">
+            <div class="section-container">
+                <h1 class="section-title">Search Trainings</h1>
+
+                <div class="search-layout">
+                    <!-- Filters Panel -->
+                    <div class="filters-panel">
+                        <div class="filter-card">
+                            <h3 class="filter-title">
+                                <i class="fas fa-filter"></i>
+                                Filters
+                            </h3>
+
+                            <!-- Exercise Filters -->
+                            <div class="filter-group">
+                                <label class="filter-label">Include Exercises</label>
+                                <div class="exercise-input-container">
+                                    <input type="text"
+                                           class="input-field"
+                                           id="include-exercises-input"
+                                           placeholder="Type exercise name..."
+                                           autocomplete="off">
+                                    <div class="autocomplete-dropdown" id="include-autocomplete"></div>
+                                </div>
+                                <div class="selected-exercises" id="include-selected"></div>
+                            </div>
+
+                            <div class="filter-group">
+                                <label class="filter-label">Exclude Exercises</label>
+                                <div class="exercise-input-container">
+                                    <input type="text"
+                                           class="input-field"
+                                           id="exclude-exercises-input"
+                                           placeholder="Type exercise name..."
+                                           autocomplete="off">
+                                    <div class="autocomplete-dropdown" id="exclude-autocomplete"></div>
+                                </div>
+                                <div class="selected-exercises" id="exclude-selected"></div>
+                            </div>
+
+                            <!-- Intensity Filter -->
+                            <div class="filter-group">
+                                <label class="filter-label">
+                                    Intensity
+                                    <span class="intensity-value" id="intensity-value">Any</span>
+                                </label>
+                                <input type="range"
+                                       class="slider"
+                                       id="intensity-slider"
+                                       min="0"
+                                       max="100"
+                                       value="0"
+                                       step="5">
+                                <div class="slider-labels">
+                                    <span>0%</span>
+                                    <span>50%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+
+                            <!-- Set Type Filter -->
+                            <div class="filter-group">
+                                <label class="filter-label">Set Type</label>
+                                <select class="input-field" id="settype-filter">
+                                    <option value="">All Types</option>
+                                    <option value="working">Working Sets</option>
+                                    <option value="amrap">AMRAP</option>
+                                    <option value="tabata">Tabata</option>
+                                    <option value="warmup">Warm-up</option>
+                                </select>
+                            </div>
+
+                            <div class="filter-actions">
+                                <button class="btn btn-primary btn-block" id="apply-filters">
+                                    <i class="fas fa-search"></i>
+                                    Search
+                                </button>
+                                <button class="btn btn-secondary btn-block" id="reset-filters">
+                                    <i class="fas fa-redo"></i>
+                                    Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Panel -->
+                    <div class="results-panel">
+                        <div class="results-header">
+                            <h2>Results <span class="result-count" id="result-count">(0)</span></h2>
+                        </div>
+
+                        <div class="results-grid" id="results-grid">
+                            <div class="empty-state">
+                                <i class="fas fa-search"></i>
+                                <h3>No results yet</h3>
+                                <p>Apply filters to search for trainings</p>
+                            </div>
+
+                            <!-- Results will be populated here -->
+                            <!-- Example:
+                            <div class="result-card">
+                                <div class="result-header">
+                                    <h3>Неделя 1 - Тренировка 1</h3>
+                                    <span class="intensity-badge">70%</span>
+                                </div>
+                                <div class="result-exercises">
+                                    <span class="exercise-chip">Подтягивания</span>
+                                    <span class="exercise-chip">Жим лежа</span>
+                                    <span class="exercise-chip">+3 more</span>
+                                </div>
+                                <button class="btn btn-sm btn-outline">View Details</button>
+                            </div>
+                            -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Timer Section -->
+        <section id="timer-section" class="section active">
+            <div class="section-container timer-container">
+                <h1 class="section-title">Tabata Timer</h1>
+
+                <!-- Timer Display -->
+                <div class="timer-display-wrapper">
+                    <div class="timer-display" id="timer-display">
+                        <!-- Current Exercise Name -->
+                        <div class="current-exercise">
+                            <h2 id="exercise-name">Ready to Start</h2>
+                        </div>
+
+                        <!-- Large Countdown -->
+                        <div class="countdown-container">
+                            <div class="countdown" id="countdown">00:00</div>
+                            <div class="state-indicator" id="state-indicator">IDLE</div>
+                        </div>
+
+                        <!-- Progress Bar -->
+                        <div class="progress-container">
+                            <div class="progress-bar-timer">
+                                <div class="progress-fill-timer" id="timer-progress-fill"></div>
+                            </div>
+                            <div class="progress-text" id="progress-text">0%</div>
+                        </div>
+
+                        <!-- Set and Exercise Info -->
+                        <div class="timer-info">
+                            <div class="info-item">
+                                <span class="info-label">Set</span>
+                                <span class="info-value" id="current-set">0 / 0</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Exercise</span>
+                                <span class="info-value" id="current-exercise">0 / 0</span>
+                            </div>
+                        </div>
+
+                        <!-- Timer Controls -->
+                        <div class="timer-controls">
+                            <button class="btn-timer btn-start" id="btn-start">
+                                <i class="fas fa-play"></i>
+                                <span>Start</span>
+                            </button>
+                            <button class="btn-timer btn-pause" id="btn-pause" style="display: none;">
+                                <i class="fas fa-pause"></i>
+                                <span>Pause</span>
+                            </button>
+                            <button class="btn-timer btn-stop" id="btn-stop">
+                                <i class="fas fa-stop"></i>
+                                <span>Stop</span>
+                            </button>
+                            <button class="btn-timer btn-fullscreen" id="btn-fullscreen">
+                                <i class="fas fa-expand"></i>
+                                <span>Fullscreen</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timer Settings -->
+                <div class="timer-settings" id="timer-settings">
+                    <h3 class="settings-title">
+                        <i class="fas fa-cog"></i>
+                        Timer Settings
+                    </h3>
+
+                    <div class="settings-grid">
+                        <div class="setting-item">
+                            <label for="work-duration">Work Duration (seconds)</label>
+                            <input type="number" id="work-duration" class="input-field" value="45" min="5" max="300">
+                        </div>
+
+                        <div class="setting-item">
+                            <label for="rest-duration">Rest Between Sets (seconds)</label>
+                            <input type="number" id="rest-duration" class="input-field" value="15" min="5" max="300">
+                        </div>
+
+                        <div class="setting-item">
+                            <label for="sets-per-exercise">Sets Per Exercise</label>
+                            <input type="number" id="sets-per-exercise" class="input-field" value="3" min="1" max="20">
+                        </div>
+
+                        <div class="setting-item">
+                            <label for="exercise-rest-duration">Rest Between Exercises (seconds)</label>
+                            <input type="number" id="exercise-rest-duration" class="input-field" value="60" min="5" max="600">
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <label for="exercise-list">Exercises</label>
+                        <textarea id="exercise-list"
+                                  class="input-field textarea-field"
+                                  rows="5"
+                                  placeholder="Enter exercises, one per line&#10;Example:&#10;Подтягивания&#10;Отжимания&#10;Приседания">Подтягивания
+Отжимания
+Приседания
+Планка</textarea>
+                    </div>
+
+                    <div class="setting-item">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="sound-enabled" checked>
+                            <span>Enable Sound Notifications</span>
+                        </label>
+                    </div>
+
+                    <div class="setting-actions">
+                        <button class="btn btn-primary" id="apply-settings">
+                            <i class="fas fa-check"></i>
+                            Apply Settings
+                        </button>
+                        <button class="btn btn-secondary" id="load-from-training">
+                            <i class="fas fa-download"></i>
+                            Load from Training
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Editor Section (Agent 4 will populate) -->
+        <section id="editor-section" class="section" style="display: none;">
+            <div class="section-container">
+                <h1 class="section-title">Training Editor</h1>
+                <div class="editor-placeholder">
+                    <i class="fas fa-tools"></i>
+                    <h3>Editor Coming Soon</h3>
+                    <p>This section will be populated by Agent 4</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav" id="bottom-nav">
+        <a href="#upload-section" class="bottom-nav-item" data-section="upload">
+            <i class="fas fa-upload"></i>
+            <span>Upload</span>
+        </a>
+        <a href="#knowledge-base" class="bottom-nav-item" data-section="knowledge-base">
+            <i class="fas fa-book"></i>
+            <span>Library</span>
+        </a>
+        <a href="#search-section" class="bottom-nav-item" data-section="search">
+            <i class="fas fa-search"></i>
+            <span>Search</span>
+        </a>
+        <a href="#timer-section" class="bottom-nav-item active" data-section="timer">
+            <i class="fas fa-stopwatch"></i>
+            <span>Timer</span>
+        </a>
+        <a href="#editor-section" class="bottom-nav-item" data-section="editor">
+            <i class="fas fa-edit"></i>
+            <span>Editor</span>
+        </a>
+    </nav>
+
+    <!-- Notification Toast -->
+    <div class="toast" id="toast">
+        <div class="toast-content">
+            <i class="toast-icon fas fa-info-circle"></i>
+            <span class="toast-message">Notification message</span>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="loading-spinner-large"></div>
+            <p>Loading...</p>
+        </div>
+    </div>
+
+    <!-- External Libraries -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <!-- Application Scripts -->
+    <script src="js/data-model.js"></script>
+    <script src="js/parser.js"></script>
+    <script src="js/filters.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/timer.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/storage.js"></script>
+    <script src="js/editor.js"></script>
+    <script src="js/export.js"></script>
+</body>
+</html>

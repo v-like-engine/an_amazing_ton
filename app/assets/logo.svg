@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Dumbbell icon -->
+  <g transform="translate(100, 100)">
+    <!-- Left weight -->
+    <rect x="-85" y="-25" width="30" height="50" rx="5" fill="url(#logoGradient)"/>
+    <!-- Left bar -->
+    <rect x="-60" y="-8" width="25" height="16" rx="3" fill="url(#logoGradient)"/>
+
+    <!-- Center bar -->
+    <rect x="-35" y="-5" width="70" height="10" rx="5" fill="url(#logoGradient)"/>
+
+    <!-- Right bar -->
+    <rect x="35" y="-8" width="25" height="16" rx="3" fill="url(#logoGradient)"/>
+    <!-- Right weight -->
+    <rect x="55" y="-25" width="30" height="50" rx="5" fill="url(#logoGradient)"/>
+  </g>
+
+  <!-- Circle background (optional) -->
+  <circle cx="100" cy="100" r="95" fill="none" stroke="url(#logoGradient)" stroke-width="3" opacity="0.3"/>
+</svg>

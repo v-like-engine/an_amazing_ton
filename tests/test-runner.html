@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Plan - Test Runner</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      color: white;
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .subtitle {
+      color: rgba(255,255,255,0.9);
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+    }
+
+    .summary {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .summary h2 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .stat {
+      flex: 1;
+      min-width: 150px;
+      padding: 15px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .stat-pass {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .stat-fail {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .stat-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .progress-bar {
+      height: 30px;
+      background: #e9ecef;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-top: 15px;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #28a745, #20c997);
+      transition: width 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: bold;
+    }
+
+    .test-section {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    }
+
+    .test-section h3 {
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.5rem;
+      border-bottom: 2px solid #667eea;
+      padding-bottom: 10px;
+    }
+
+    .test-item {
+      padding: 12px 15px;
+      margin: 8px 0;
+      border-radius: 6px;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .test-item:hover {
+      transform: translateX(5px);
+    }
+
+    .test-pass {
+      background: #d4edda;
+      border-left: 4px solid #28a745;
+    }
+
+    .test-fail {
+      background: #f8d7da;
+      border-left: 4px solid #dc3545;
+    }
+
+    .test-pending {
+      background: #fff3cd;
+      border-left: 4px solid #ffc107;
+    }
+
+    .test-icon {
+      font-size: 1.2rem;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .test-content {
+      flex: 1;
+    }
+
+    .test-name {
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .test-error {
+      background: #fff;
+      border: 1px solid #dc3545;
+      border-radius: 4px;
+      padding: 10px;
+      margin-top: 8px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      color: #721c24;
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+
+    .test-duration {
+      font-size: 0.85rem;
+      color: #6c757d;
+      margin-top: 5px;
+    }
+
+    .controls {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+    }
+
+    .btn-primary {
+      background: #667eea;
+      color: white;
+    }
+
+    .btn-secondary {
+      background: white;
+      color: #667eea;
+    }
+
+    .loading {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 30px 50px;
+      border-radius: 12px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      z-index: 1000;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .filter-controls {
+      background: white;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 8px 16px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .filter-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2rem;
+      }
+
+      .stats {
+        flex-direction: column;
+      }
+
+      .controls {
+        bottom: 10px;
+        right: 10px;
+        left: 10px;
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Training Plan Test Runner</h1>
+    <div class="subtitle">Quality Assurance & Testing Suite - Agent 5</div>
+
+    <div class="summary">
+      <h2>Test Summary</h2>
+      <div class="stats">
+        <div class="stat stat-pass">
+          <div class="stat-number" id="pass-count">0</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat stat-fail">
+          <div class="stat-number" id="fail-count">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat stat-pending">
+          <div class="stat-number" id="pending-count">0</div>
+          <div class="stat-label">Pending</div>
+        </div>
+        <div class="stat" style="background: #e7f3ff; color: #004085;">
+          <div class="stat-number" id="total-count">0</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-fill" style="width: 0%;">
+          <span id="progress-text">0%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-controls">
+      <span style="font-weight: 600; color: #333;">Filter:</span>
+      <button class="filter-btn active" data-filter="all">All Tests</button>
+      <button class="filter-btn" data-filter="pass">Passed Only</button>
+      <button class="filter-btn" data-filter="fail">Failed Only</button>
+      <button class="filter-btn" data-filter="pending">Pending Only</button>
+    </div>
+
+    <div id="test-results"></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn btn-primary" onclick="runner.run()">Run Tests</button>
+    <button class="btn btn-secondary" onclick="location.reload()">Reset</button>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <div style="text-align: center; color: #333; font-weight: 600;">Running tests...</div>
+  </div>
+
+  <!-- Load external libraries from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+  <!-- Load all source files (will be created by other agents) -->
+  <script src="../app/js/data-model.js" onerror="console.warn('data-model.js not found yet')"></script>
+  <script src="../app/js/parser.js" onerror="console.warn('parser.js not found yet')"></script>
+  <script src="../app/js/search.js" onerror="console.warn('search.js not found yet')"></script>
+  <script src="../app/js/filters.js" onerror="console.warn('filters.js not found yet')"></script>
+  <script src="../app/js/storage.js" onerror="console.warn('storage.js not found yet')"></script>
+  <script src="../app/js/editor.js" onerror="console.warn('editor.js not found yet')"></script>
+  <script src="../app/js/export.js" onerror="console.warn('export.js not found yet')"></script>
+  <script src="../app/js/timer.js" onerror="console.warn('timer.js not found yet')"></script>
+  <script src="../app/js/ui.js" onerror="console.warn('ui.js not found yet')"></script>
+
+  <!-- Simple test framework -->
+  <script>
+    class TestRunner {
+      constructor() {
+        this.tests = [];
+        this.testsBySection = new Map();
+        this.results = [];
+        this.currentFilter = 'all';
+        this.setupFilterControls();
+      }
+
+      setupFilterControls() {
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            e.target.classList.add('active');
+            this.currentFilter = e.target.dataset.filter;
+            this.displayResults();
+          });
+        });
+      }
+
+      test(name, fn, section = 'General') {
+        this.tests.push({ name, fn, section });
+
+        if (!this.testsBySection.has(section)) {
+          this.testsBySection.set(section, []);
+        }
+        this.testsBySection.get(section).push({ name, fn });
+      }
+
+      async run() {
+        console.log('Starting test run...');
+        document.getElementById('loading').classList.add('active');
+        this.results = [];
+
+        // Small delay to show loading state
+        await new Promise(resolve => setTimeout(resolve, 100));
+
+        for (let test of this.tests) {
+          const startTime = performance.now();
+          try {
+            await test.fn();
+            const duration = performance.now() - startTime;
+            this.results.push({
+              name: test.name,
+              section: test.section,
+              status: 'pass',
+              duration: duration.toFixed(2)
+            });
+            console.log(`✓ ${test.name} (${duration.toFixed(2)}ms)`);
+          } catch (error) {
+            const duration = performance.now() - startTime;
+            this.results.push({
+              name: test.name,
+              section: test.section,
+              status: 'fail',
+              error,
+              duration: duration.toFixed(2)
+            });
+            console.error(`✗ ${test.name}:`, error);
+          }
+        }
+
+        document.getElementById('loading').classList.remove('active');
+        this.displayResults();
+        this.printSummary();
+      }
+
+      displayResults() {
+        const container = document.getElementById('test-results');
+        const passCount = this.results.filter(r => r.status === 'pass').length;
+        const failCount = this.results.filter(r => r.status === 'fail').length;
+        const totalCount = this.results.length;
+        const pendingCount = this.tests.length - totalCount;
+
+        // Update summary stats
+        document.getElementById('pass-count').textContent = passCount;
+        document.getElementById('fail-count').textContent = failCount;
+        document.getElementById('pending-count').textContent = pendingCount;
+        document.getElementById('total-count').textContent = this.tests.length;
+
+        // Update progress bar
+        const percentage = totalCount > 0 ? Math.round((passCount / totalCount) * 100) : 0;
+        const progressFill = document.getElementById('progress-fill');
+        progressFill.style.width = `${percentage}%`;
+        document.getElementById('progress-text').textContent = `${percentage}%`;
+
+        if (failCount > 0) {
+          progressFill.style.background = 'linear-gradient(90deg, #dc3545, #c82333)';
+        } else if (passCount > 0) {
+          progressFill.style.background = 'linear-gradient(90deg, #28a745, #20c997)';
+        }
+
+        // Group results by section
+        const sections = new Map();
+        this.results.forEach(result => {
+          if (!sections.has(result.section)) {
+            sections.set(result.section, []);
+          }
+          sections.get(result.section).push(result);
+        });
+
+        let html = '';
+
+        sections.forEach((results, sectionName) => {
+          const filteredResults = this.filterResults(results);
+          if (filteredResults.length === 0 && this.currentFilter !== 'all') {
+            return; // Skip empty sections when filtering
+          }
+
+          const sectionPass = results.filter(r => r.status === 'pass').length;
+          const sectionTotal = results.length;
+
+          html += `
+            <div class="test-section">
+              <h3>${sectionName} <span style="font-size: 0.9rem; color: #6c757d;">(${sectionPass}/${sectionTotal} passed)</span></h3>
+          `;
+
+          filteredResults.forEach(result => {
+            const statusClass = `test-${result.status}`;
+            const icon = result.status === 'pass' ? '✓' : result.status === 'fail' ? '✗' : '⏸';
+
+            html += `
+              <div class="${statusClass} test-item">
+                <div class="test-icon">${icon}</div>
+                <div class="test-content">
+                  <div class="test-name">${result.name}</div>
+                  ${result.duration ? `<div class="test-duration">Duration: ${result.duration}ms</div>` : ''}
+                  ${result.error ? `<div class="test-error">${this.formatError(result.error)}</div>` : ''}
+                </div>
+              </div>
+            `;
+          });
+
+          html += '</div>';
+        });
+
+        if (html === '') {
+          html = '<div class="test-section"><h3>No tests match the current filter</h3></div>';
+        }
+
+        container.innerHTML = html;
+      }
+
+      filterResults(results) {
+        switch (this.currentFilter) {
+          case 'pass':
+            return results.filter(r => r.status === 'pass');
+          case 'fail':
+            return results.filter(r => r.status === 'fail');
+          case 'pending':
+            return [];
+          default:
+            return results;
+        }
+      }
+
+      formatError(error) {
+        let message = error.message || error.toString();
+        if (error.stack) {
+          message += '\n\nStack trace:\n' + error.stack;
+        }
+        return this.escapeHtml(message);
+      }
+
+      escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      printSummary() {
+        const passCount = this.results.filter(r => r.status === 'pass').length;
+        const failCount = this.results.filter(r => r.status === 'fail').length;
+
+        console.log('\n' + '='.repeat(50));
+        console.log('TEST SUMMARY');
+        console.log('='.repeat(50));
+        console.log(`Total Tests: ${this.tests.length}`);
+        console.log(`Passed: ${passCount}`);
+        console.log(`Failed: ${failCount}`);
+        console.log(`Pending: ${this.tests.length - this.results.length}`);
+        console.log(`Success Rate: ${this.results.length > 0 ? Math.round((passCount / this.results.length) * 100) : 0}%`);
+        console.log('='.repeat(50) + '\n');
+      }
+    }
+
+    // Global test runner instance
+    const runner = new TestRunner();
+    const test = runner.test.bind(runner);
+
+    // Helper assertion functions
+    function assertEqual(actual, expected, message = 'Values should be equal') {
+      if (actual !== expected) {
+        throw new Error(`${message}\n  Expected: ${JSON.stringify(expected)}\n  Actual: ${JSON.stringify(actual)}`);
+      }
+    }
+
+    function assertDeepEqual(actual, expected, message = 'Objects should be deeply equal') {
+      const actualStr = JSON.stringify(actual);
+      const expectedStr = JSON.stringify(expected);
+      if (actualStr !== expectedStr) {
+        throw new Error(`${message}\n  Expected: ${expectedStr}\n  Actual: ${actualStr}`);
+      }
+    }
+
+    function assertTrue(value, message = 'Value should be true') {
+      if (!value) {
+        throw new Error(`${message}\n  Expected: true\n  Actual: ${value}`);
+      }
+    }
+
+    function assertFalse(value, message = 'Value should be false') {
+      if (value) {
+        throw new Error(`${message}\n  Expected: false\n  Actual: ${value}`);
+      }
+    }
+
+    function assertThrows(fn, message = 'Function should throw an error') {
+      let threw = false;
+      try {
+        fn();
+      } catch (e) {
+        threw = true;
+      }
+      if (!threw) {
+        throw new Error(message);
+      }
+    }
+
+    function assertContains(array, value, message = 'Array should contain value') {
+      if (!array.includes(value)) {
+        throw new Error(`${message}\n  Array: ${JSON.stringify(array)}\n  Missing value: ${JSON.stringify(value)}`);
+      }
+    }
+
+    function assertNotNull(value, message = 'Value should not be null or undefined') {
+      if (value === null || value === undefined) {
+        throw new Error(`${message}\n  Actual: ${value}`);
+      }
+    }
+
+    function assertGreaterThan(actual, threshold, message = 'Value should be greater than threshold') {
+      if (actual <= threshold) {
+        throw new Error(`${message}\n  Expected: > ${threshold}\n  Actual: ${actual}`);
+      }
+    }
+
+    function assertLessThan(actual, threshold, message = 'Value should be less than threshold') {
+      if (actual >= threshold) {
+        throw new Error(`${message}\n  Expected: < ${threshold}\n  Actual: ${actual}`);
+      }
+    }
+
+    function assertArrayLength(array, length, message = 'Array should have expected length') {
+      if (!Array.isArray(array)) {
+        throw new Error(`${message}\n  Not an array: ${typeof array}`);
+      }
+      if (array.length !== length) {
+        throw new Error(`${message}\n  Expected length: ${length}\n  Actual length: ${array.length}`);
+      }
+    }
+  </script>
+
+  <!-- Load all test files -->
+  <script src="parser.test.js" onerror="console.warn('parser.test.js not loaded yet')"></script>
+  <script src="search.test.js" onerror="console.warn('search.test.js not loaded yet')"></script>
+  <script src="ui.test.js" onerror="console.warn('ui.test.js not loaded yet')"></script>
+  <script src="timer.test.js" onerror="console.warn('timer.test.js not loaded yet')"></script>
+  <script src="storage.test.js" onerror="console.warn('storage.test.js not loaded yet')"></script>
+  <script src="export.test.js" onerror="console.warn('export.test.js not loaded yet')"></script>
+  <script src="integration.test.js" onerror="console.warn('integration.test.js not loaded yet')"></script>
+
+  <script>
+    // Display initial state
+    runner.displayResults();
+    console.log('Test runner initialized. Click "Run Tests" button to start.');
+  </script>
+</body>
+</html>

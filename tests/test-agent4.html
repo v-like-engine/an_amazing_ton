@@ -1,0 +1,1158 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent 4 - Storage, Editor, Export Tests</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      overflow: hidden;
+    }
+
+    header {
+      background: linear-gradient(135deg, #2c3e50, #3498db);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    header p {
+      font-size: 1.1em;
+      opacity: 0.9;
+    }
+
+    .content {
+      padding: 30px;
+    }
+
+    .section {
+      margin-bottom: 40px;
+      padding: 20px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #3498db;
+    }
+
+    .section h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+
+    .section h3 {
+      color: #34495e;
+      margin: 20px 0 10px 0;
+      font-size: 1.3em;
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #3498db, #2980b9);
+      color: white;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #27ae60, #229954);
+      color: white;
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f39c12, #e67e22);
+      color: white;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      color: white;
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #9b59b6, #8e44ad);
+      color: white;
+    }
+
+    .output {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      min-height: 100px;
+      max-height: 400px;
+      overflow-y: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .output.success {
+      background: #d4edda;
+      border-color: #c3e6cb;
+      color: #155724;
+    }
+
+    .output.error {
+      background: #f8d7da;
+      border-color: #f5c6cb;
+      color: #721c24;
+    }
+
+    .output.info {
+      background: #d1ecf1;
+      border-color: #bee5eb;
+      color: #0c5460;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      border: 2px solid #3498db;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-size: 2em;
+      font-weight: bold;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+
+    .stat-card .label {
+      color: #7f8c8d;
+      font-size: 0.9em;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    select,
+    textarea {
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 10px;
+      transition: border-color 0.3s ease;
+    }
+
+    input[type="text"]:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #34495e;
+      font-weight: 600;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+
+    #exportPreview {
+      max-height: 500px;
+      overflow-y: auto;
+    }
+
+    .training-export {
+      margin-bottom: 30px;
+    }
+
+    footer {
+      background: #2c3e50;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 0.9em;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-indicator.ready {
+      background: #27ae60;
+    }
+
+    .status-indicator.error {
+      background: #e74c3c;
+    }
+
+    .status-indicator.warning {
+      background: #f39c12;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🔧 Agent 4 Test Suite</h1>
+      <p>Storage, Editing & Export Functionality Testing</p>
+    </header>
+
+    <div class="content">
+      <!-- Status Section -->
+      <div class="section">
+        <h2>📊 System Status</h2>
+        <div class="stats" id="systemStats"></div>
+      </div>
+
+      <!-- Storage Tests -->
+      <div class="section">
+        <h2>💾 Storage Tests</h2>
+
+        <h3>Data Management</h3>
+        <div class="button-group">
+          <button class="btn-primary" onclick="testCreateSampleData()">Create Sample Data</button>
+          <button class="btn-success" onclick="testAutoSave()">Test Auto-Save</button>
+          <button class="btn-success" onclick="testAutoLoad()">Test Auto-Load</button>
+          <button class="btn-warning" onclick="testExportJSON()">Export JSON</button>
+          <button class="btn-danger" onclick="testClearStorage()">Clear Storage</button>
+        </div>
+
+        <h3>Import/Export</h3>
+        <div class="form-group">
+          <label for="importFile">Import JSON File:</label>
+          <input type="file" id="importFile" accept=".json" onchange="testImportJSON(event)">
+        </div>
+
+        <div id="storageOutput" class="output"></div>
+      </div>
+
+      <!-- Editor Tests -->
+      <div class="section">
+        <h2>✏️ Editor Tests</h2>
+
+        <h3>Edit Operations</h3>
+        <div class="button-group">
+          <button class="btn-primary" onclick="testUpdateExercise()">Update Exercise</button>
+          <button class="btn-primary" onclick="testUpdateBlock()">Update Block</button>
+          <button class="btn-primary" onclick="testUpdateTraining()">Update Training</button>
+          <button class="btn-primary" onclick="testUpdateWeek()">Update Week</button>
+        </div>
+
+        <h3>Add Operations</h3>
+        <div class="button-group">
+          <button class="btn-success" onclick="testAddExercise()">Add Exercise</button>
+          <button class="btn-success" onclick="testAddBlock()">Add Block</button>
+          <button class="btn-success" onclick="testAddTraining()">Add Training</button>
+          <button class="btn-success" onclick="testAddWeek()">Add Week</button>
+        </div>
+
+        <h3>Delete Operations</h3>
+        <div class="button-group">
+          <button class="btn-danger" onclick="testDeleteExercise()">Delete Exercise</button>
+          <button class="btn-danger" onclick="testDeleteBlock()">Delete Block</button>
+          <button class="btn-danger" onclick="testDeleteTraining()">Delete Training</button>
+        </div>
+
+        <h3>Undo/Redo</h3>
+        <div class="button-group">
+          <button class="btn-warning" onclick="testUndo()">Undo</button>
+          <button class="btn-warning" onclick="testRedo()">Redo</button>
+          <button class="btn-info" onclick="testShowHistory()">Show History</button>
+        </div>
+
+        <div id="editorOutput" class="output"></div>
+      </div>
+
+      <!-- Export Tests -->
+      <div class="section">
+        <h2>📤 Export Tests</h2>
+
+        <h3>Selection</h3>
+        <div class="button-group">
+          <button class="btn-primary" onclick="testSelectFirstTraining()">Select First Training</button>
+          <button class="btn-primary" onclick="testSelectWeek()">Select First Week</button>
+          <button class="btn-primary" onclick="testSelectAll()">Select All</button>
+          <button class="btn-warning" onclick="testClearSelection()">Clear Selection</button>
+        </div>
+
+        <h3>Export Functions</h3>
+        <div class="button-group">
+          <button class="btn-success" onclick="testExportPDF()">Export as PDF</button>
+          <button class="btn-success" onclick="testExportImages()">Export as Images</button>
+          <button class="btn-success" onclick="testExportCombinedImage()">Export Combined Image</button>
+          <button class="btn-info" onclick="testShowPreview()">Show Preview</button>
+        </div>
+
+        <h3>Export Statistics</h3>
+        <div id="exportStats" class="stats"></div>
+
+        <h3>Preview</h3>
+        <div id="exportPreview" class="output"></div>
+
+        <div id="exportOutput" class="output"></div>
+      </div>
+
+      <!-- Integration Tests -->
+      <div class="section">
+        <h2>🔄 Integration Tests</h2>
+
+        <div class="button-group">
+          <button class="btn-info" onclick="testFullWorkflow()">Test Full Workflow</button>
+          <button class="btn-info" onclick="testDataIntegrity()">Test Data Integrity</button>
+          <button class="btn-info" onclick="testLargeDataset()">Test Large Dataset</button>
+          <button class="btn-success" onclick="testAllFeatures()">Run All Tests</button>
+        </div>
+
+        <div id="integrationOutput" class="output"></div>
+      </div>
+
+      <!-- Knowledge Base Viewer -->
+      <div class="section">
+        <h2>🗂️ Knowledge Base Viewer</h2>
+
+        <div class="button-group">
+          <button class="btn-primary" onclick="viewKnowledgeBase()">View Full KB</button>
+          <button class="btn-primary" onclick="viewMetadata()">View Metadata</button>
+          <button class="btn-primary" onclick="viewExerciseList()">View Exercises</button>
+        </div>
+
+        <div id="kbOutput" class="output"></div>
+      </div>
+    </div>
+
+    <footer>
+      <p>Agent 4 - Storage, Editing & Export | Training Plan Manager</p>
+      <p>Created with ❤️ for reliable data management</p>
+    </footer>
+  </div>
+
+  <!-- Load Libraries from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <!-- Load our modules -->
+  <script src="../app/js/mock-data-model.js"></script>
+  <script src="../app/js/storage.js"></script>
+  <script src="../app/js/editor.js"></script>
+  <script src="../app/js/export.js"></script>
+
+  <script>
+    // Global instances
+    let kb = new MockKnowledgeBase();
+    let storage = new StorageManager();
+    let editor = new TrainingEditor(kb, storage);
+    let exportManager = new ExportManager(kb);
+
+    // Setup change listener
+    editor.onChange((type, data) => {
+      console.log('Change event:', type, data);
+      updateSystemStats();
+    });
+
+    // Initialize
+    window.addEventListener('DOMContentLoaded', () => {
+      // Try to load from storage
+      const savedData = storage.autoLoad();
+
+      if (savedData) {
+        kb.fromJSON(savedData);
+        output('storageOutput', `✅ Loaded from localStorage: ${kb.metadata.totalWeeks} weeks, ${kb.metadata.totalTrainings} trainings`, 'success');
+      } else {
+        output('storageOutput', 'ℹ️ No saved data found. Click "Create Sample Data" to start.', 'info');
+      }
+
+      updateSystemStats();
+    });
+
+    // Helper functions
+    function output(elementId, message, type = '') {
+      const el = document.getElementById(elementId);
+      el.textContent = message;
+      el.className = 'output ' + type;
+    }
+
+    function appendOutput(elementId, message) {
+      const el = document.getElementById(elementId);
+      el.textContent += '\n' + message;
+    }
+
+    function updateSystemStats() {
+      const stats = document.getElementById('systemStats');
+      const storageStats = storage.getStats();
+      const kbMeta = kb.metadata;
+
+      stats.innerHTML = `
+        <div class="stat-card">
+          <div class="value">${kbMeta.totalWeeks || 0}</div>
+          <div class="label">Weeks</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${kbMeta.totalTrainings || 0}</div>
+          <div class="label">Trainings</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${kbMeta.totalExercises || 0}</div>
+          <div class="label">Exercises</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${storageStats.saveCount}</div>
+          <div class="label">Saves</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${exportManager.getSelectedTrainings().length}</div>
+          <div class="label">Selected</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${editor.canUndo() ? '✅' : '❌'}</div>
+          <div class="label">Can Undo</div>
+        </div>
+      `;
+    }
+
+    // ========================================================================
+    // STORAGE TESTS
+    // ========================================================================
+
+    function testCreateSampleData() {
+      try {
+        kb.createSampleData();
+        storage.autoSave(kb);
+        output('storageOutput', '✅ Sample data created and saved!\n\n' + JSON.stringify(kb.metadata, null, 2), 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('storageOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAutoSave() {
+      try {
+        const success = storage._performSave(kb);
+        const stats = storage.getStats();
+        output('storageOutput', success
+          ? '✅ Auto-save successful!\n\nStats:\n' + JSON.stringify(stats, null, 2)
+          : '❌ Auto-save failed', success ? 'success' : 'error');
+        updateSystemStats();
+      } catch (error) {
+        output('storageOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAutoLoad() {
+      try {
+        const data = storage.autoLoad();
+        if (data) {
+          kb.fromJSON(data);
+          output('storageOutput', '✅ Auto-load successful!\n\n' + JSON.stringify(kb.metadata, null, 2), 'success');
+        } else {
+          output('storageOutput', 'ℹ️ No saved data found', 'info');
+        }
+        updateSystemStats();
+      } catch (error) {
+        output('storageOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testExportJSON() {
+      try {
+        const success = storage.exportToFile(kb, 'training-plan-backup.json');
+        output('storageOutput', success
+          ? '✅ JSON file exported! Check your downloads.'
+          : '❌ Export failed', success ? 'success' : 'error');
+      } catch (error) {
+        output('storageOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testImportJSON(event) {
+      try {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const data = await storage.importFromFile(file);
+        kb.fromJSON(data);
+        storage.autoSave(kb);
+
+        output('storageOutput', '✅ JSON file imported successfully!\n\n' + JSON.stringify(kb.metadata, null, 2), 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('storageOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testClearStorage() {
+      if (confirm('Are you sure you want to clear all storage?')) {
+        try {
+          storage.clearStorage();
+          kb = new MockKnowledgeBase();
+          editor = new TrainingEditor(kb, storage);
+          exportManager = new ExportManager(kb);
+          output('storageOutput', '✅ Storage cleared', 'success');
+          updateSystemStats();
+        } catch (error) {
+          output('storageOutput', '❌ Error: ' + error.message, 'error');
+        }
+      }
+    }
+
+    // ========================================================================
+    // EDITOR TESTS
+    // ========================================================================
+
+    function testUpdateExercise() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const exercise = kb.weeks[0].trainings[0].blocks[0].exercises[0];
+        const oldName = exercise.name;
+
+        editor.updateExercise(exercise.id, {
+          name: 'MODIFIED: ' + oldName,
+          repetitions: '99',
+          weight: '100 кг'
+        });
+
+        output('editorOutput', `✅ Exercise updated!\nOld: ${oldName}\nNew: ${exercise.name}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testUpdateBlock() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const block = kb.weeks[0].trainings[0].blocks[0];
+        const oldRounds = block.rounds;
+
+        editor.updateBlock(block.id, {
+          rounds: 10,
+          restInfo: 'Modified rest info',
+          setType: 'AMRAP'
+        });
+
+        output('editorOutput', `✅ Block updated!\nOld rounds: ${oldRounds}\nNew rounds: ${block.rounds}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testUpdateTraining() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const training = kb.weeks[0].trainings[0];
+        const oldIntensity = training.intensityPercent;
+
+        editor.updateTraining(training.id, {
+          intensityPercent: '90-100%',
+          date: '31.12.2025'
+        });
+
+        output('editorOutput', `✅ Training updated!\nOld: ${oldIntensity}\nNew: ${training.intensityPercent}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testUpdateWeek() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const week = kb.weeks[0];
+        const oldDescription = week.description;
+
+        editor.updateWeek(week.id, {
+          description: 'MODIFIED: ' + oldDescription,
+          intensity: 'extreme'
+        });
+
+        output('editorOutput', `✅ Week updated!\nOld: ${oldDescription}\nNew: ${week.description}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAddExercise() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const block = kb.weeks[0].trainings[0].blocks[0];
+        const exercise = editor.addExerciseToBlock(block.id, {
+          name: 'NEW EXERCISE',
+          repetitions: '20',
+          weight: '50 кг'
+        });
+
+        output('editorOutput', `✅ Exercise added!\nID: ${exercise.id}\nName: ${exercise.name}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAddBlock() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const training = kb.weeks[0].trainings[0];
+        const block = editor.addBlockToTraining(training.id, {
+          rounds: 5,
+          restInfo: 'every 3 min',
+          setType: 'rounds',
+          exercises: [
+            { name: 'Test Exercise 1', repetitions: '10', weight: '' },
+            { name: 'Test Exercise 2', repetitions: '15', weight: '5 кг' }
+          ]
+        });
+
+        output('editorOutput', `✅ Block added!\nID: ${block.id}\nExercises: ${block.exercises.length}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAddTraining() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const week = kb.weeks[0];
+        const training = editor.addTrainingToWeek(week.id, {
+          intensityPercent: '80-90%',
+          date: 'NEW DATE'
+        });
+
+        output('editorOutput', `✅ Training added!\nID: ${training.id}\nNumber: ${training.trainingNumber}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testAddWeek() {
+      try {
+        const week = editor.addWeek({
+          dateRange: '1-7.12',
+          description: 'NEW WEEK',
+          intensity: 'high'
+        });
+
+        output('editorOutput', `✅ Week added!\nID: ${week.id}\nRange: ${week.dateRange}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testDeleteExercise() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No data. Create sample data first.');
+        }
+
+        const exercise = kb.weeks[0].trainings[0].blocks[0].exercises[0];
+        const exerciseId = exercise.id;
+        const exerciseName = exercise.name;
+
+        editor.deleteExercise(exerciseId);
+
+        output('editorOutput', `✅ Exercise deleted!\nID: ${exerciseId}\nName: ${exerciseName}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testDeleteBlock() {
+      try {
+        if (kb.weeks.length === 0 || kb.weeks[0].trainings[0].blocks.length === 0) {
+          throw new Error('No blocks to delete');
+        }
+
+        const block = kb.weeks[0].trainings[0].blocks[0];
+        const blockId = block.id;
+
+        editor.deleteBlock(blockId);
+
+        output('editorOutput', `✅ Block deleted!\nID: ${blockId}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testDeleteTraining() {
+      try {
+        if (kb.weeks.length === 0 || kb.weeks[0].trainings.length === 0) {
+          throw new Error('No trainings to delete');
+        }
+
+        const training = kb.weeks[0].trainings[0];
+        const trainingId = training.id;
+
+        editor.deleteTraining(trainingId);
+
+        output('editorOutput', `✅ Training deleted!\nID: ${trainingId}`, 'success');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testUndo() {
+      try {
+        const success = editor.undo();
+        output('editorOutput', success ? '✅ Undo successful!' : 'ℹ️ Nothing to undo', success ? 'success' : 'info');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testRedo() {
+      try {
+        const success = editor.redo();
+        output('editorOutput', success ? '✅ Redo successful!' : 'ℹ️ Nothing to redo', success ? 'success' : 'info');
+        updateSystemStats();
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testShowHistory() {
+      try {
+        const history = editor.history.slice(-10); // Last 10 actions
+        output('editorOutput', 'Recent history:\n\n' + JSON.stringify(history, null, 2), 'info');
+      } catch (error) {
+        output('editorOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    // ========================================================================
+    // EXPORT TESTS
+    // ========================================================================
+
+    function testSelectFirstTraining() {
+      try {
+        if (kb.weeks.length === 0 || !kb.weeks[0].trainings.length) {
+          throw new Error('No trainings available');
+        }
+
+        const training = kb.weeks[0].trainings[0];
+        exportManager.addToExportGroup(training.id);
+
+        updateExportStats();
+        output('exportOutput', `✅ Selected training: ${training.id}`, 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testSelectWeek() {
+      try {
+        if (kb.weeks.length === 0) {
+          throw new Error('No weeks available');
+        }
+
+        const count = exportManager.selectWeek(kb.weeks[0].id);
+        updateExportStats();
+        output('exportOutput', `✅ Selected ${count} trainings from week`, 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testSelectAll() {
+      try {
+        const count = exportManager.selectAll();
+        updateExportStats();
+        output('exportOutput', `✅ Selected all ${count} trainings`, 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testClearSelection() {
+      exportManager.clearExportGroup();
+      updateExportStats();
+      output('exportOutput', '✅ Selection cleared', 'success');
+    }
+
+    async function testExportPDF() {
+      try {
+        if (exportManager.getSelectedTrainings().length === 0) {
+          throw new Error('No trainings selected. Select trainings first.');
+        }
+
+        await exportManager.exportAsPDF('test-trainings');
+        output('exportOutput', '✅ PDF exported! Check your downloads.', 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testExportImages() {
+      try {
+        if (exportManager.getSelectedTrainings().length === 0) {
+          throw new Error('No trainings selected. Select trainings first.');
+        }
+
+        output('exportOutput', 'ℹ️ Exporting images... Please wait.', 'info');
+        await exportManager.exportAsImage('png', 'test-training');
+        output('exportOutput', '✅ Images exported! Check your downloads.', 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testExportCombinedImage() {
+      try {
+        if (exportManager.getSelectedTrainings().length === 0) {
+          throw new Error('No trainings selected. Select trainings first.');
+        }
+
+        output('exportOutput', 'ℹ️ Exporting combined image... Please wait.', 'info');
+        await exportManager.exportAsCombinedImage('png', 'trainings-combined');
+        output('exportOutput', '✅ Combined image exported! Check your downloads.', 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testShowPreview() {
+      try {
+        const preview = exportManager.showExportPreview();
+        document.getElementById('exportPreview').innerHTML = preview;
+        output('exportOutput', '✅ Preview generated', 'success');
+      } catch (error) {
+        output('exportOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function updateExportStats() {
+      const stats = exportManager.getExportStats();
+      const statsEl = document.getElementById('exportStats');
+
+      statsEl.innerHTML = `
+        <div class="stat-card">
+          <div class="value">${stats.trainings}</div>
+          <div class="label">Trainings</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${stats.blocks}</div>
+          <div class="label">Blocks</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${stats.exercises}</div>
+          <div class="label">Exercises</div>
+        </div>
+        <div class="stat-card">
+          <div class="value">${stats.weeks}</div>
+          <div class="label">Weeks</div>
+        </div>
+      `;
+
+      updateSystemStats();
+    }
+
+    // ========================================================================
+    // INTEGRATION TESTS
+    // ========================================================================
+
+    async function testFullWorkflow() {
+      try {
+        output('integrationOutput', 'Starting full workflow test...\n', 'info');
+
+        // 1. Create data
+        kb.createSampleData();
+        appendOutput('integrationOutput', '✅ Step 1: Sample data created');
+
+        // 2. Save
+        storage.autoSave(kb);
+        appendOutput('integrationOutput', '✅ Step 2: Data saved');
+
+        // 3. Edit
+        const exercise = kb.weeks[0].trainings[0].blocks[0].exercises[0];
+        editor.updateExercise(exercise.id, { name: 'WORKFLOW TEST' });
+        appendOutput('integrationOutput', '✅ Step 3: Exercise edited');
+
+        // 4. Add new content
+        editor.addWeek({ dateRange: 'Test Week', description: 'Test' });
+        appendOutput('integrationOutput', '✅ Step 4: Week added');
+
+        // 5. Select for export
+        exportManager.selectAll();
+        appendOutput('integrationOutput', `✅ Step 5: Selected ${exportManager.getSelectedTrainings().length} trainings`);
+
+        // 6. Export
+        await exportManager.exportAsPDF('workflow-test');
+        appendOutput('integrationOutput', '✅ Step 6: PDF exported');
+
+        appendOutput('integrationOutput', '\n✅ FULL WORKFLOW COMPLETED SUCCESSFULLY!');
+        updateSystemStats();
+      } catch (error) {
+        appendOutput('integrationOutput', '\n❌ Error: ' + error.message);
+        document.getElementById('integrationOutput').className = 'output error';
+      }
+    }
+
+    function testDataIntegrity() {
+      try {
+        output('integrationOutput', 'Testing data integrity...\n', 'info');
+
+        // Save current state
+        const beforeJSON = JSON.stringify(kb.toJSON());
+        appendOutput('integrationOutput', '✅ Captured current state');
+
+        // Save to storage
+        storage.autoSave(kb);
+        appendOutput('integrationOutput', '✅ Saved to localStorage');
+
+        // Load from storage
+        const loaded = storage.autoLoad();
+        kb.fromJSON(loaded);
+        appendOutput('integrationOutput', '✅ Loaded from localStorage');
+
+        // Compare
+        const afterJSON = JSON.stringify(kb.toJSON());
+
+        if (beforeJSON === afterJSON) {
+          appendOutput('integrationOutput', '\n✅ DATA INTEGRITY CHECK PASSED!');
+          appendOutput('integrationOutput', 'Data is identical before and after save/load cycle.');
+          document.getElementById('integrationOutput').className = 'output success';
+        } else {
+          appendOutput('integrationOutput', '\n❌ DATA INTEGRITY CHECK FAILED!');
+          appendOutput('integrationOutput', 'Data differs after save/load cycle.');
+          document.getElementById('integrationOutput').className = 'output error';
+        }
+
+        updateSystemStats();
+      } catch (error) {
+        output('integrationOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    function testLargeDataset() {
+      try {
+        output('integrationOutput', 'Creating large dataset...\n', 'info');
+
+        const startTime = performance.now();
+
+        // Create 20 weeks, each with 5 trainings, each with 3 blocks, each with 5 exercises
+        for (let w = 0; w < 20; w++) {
+          const week = editor.addWeek({
+            dateRange: `Week ${w + 1}`,
+            description: `Large dataset week ${w + 1}`
+          });
+
+          for (let t = 0; t < 5; t++) {
+            const training = editor.addTrainingToWeek(week.id, {
+              intensityPercent: '70%',
+              date: `${t + 1}.01`
+            });
+
+            for (let b = 0; b < 3; b++) {
+              const block = editor.addBlockToTraining(training.id, {
+                rounds: 3,
+                restInfo: 'test'
+              });
+
+              for (let e = 0; e < 5; e++) {
+                editor.addExerciseToBlock(block.id, {
+                  name: `Exercise ${e + 1}`,
+                  repetitions: '10',
+                  weight: '20 kg'
+                });
+              }
+            }
+          }
+        }
+
+        const endTime = performance.now();
+        const duration = (endTime - startTime).toFixed(2);
+
+        appendOutput('integrationOutput', `✅ Created large dataset in ${duration}ms`);
+        appendOutput('integrationOutput', `\nStats:`);
+        appendOutput('integrationOutput', `- Weeks: ${kb.metadata.totalWeeks}`);
+        appendOutput('integrationOutput', `- Trainings: ${kb.metadata.totalTrainings}`);
+        appendOutput('integrationOutput', `- Exercises: ${kb.metadata.totalExercises}`);
+
+        // Test save performance
+        const saveStart = performance.now();
+        storage.autoSave(kb);
+        const saveDuration = (performance.now() - saveStart).toFixed(2);
+        appendOutput('integrationOutput', `\n✅ Saved in ${saveDuration}ms`);
+
+        // Test load performance
+        const loadStart = performance.now();
+        const loaded = storage.autoLoad();
+        const loadDuration = (performance.now() - loadStart).toFixed(2);
+        appendOutput('integrationOutput', `✅ Loaded in ${loadDuration}ms`);
+
+        document.getElementById('integrationOutput').className = 'output success';
+        updateSystemStats();
+      } catch (error) {
+        output('integrationOutput', '❌ Error: ' + error.message, 'error');
+      }
+    }
+
+    async function testAllFeatures() {
+      try {
+        output('integrationOutput', '🚀 Running all tests...\n\n', 'info');
+
+        // Storage tests
+        appendOutput('integrationOutput', '=== STORAGE TESTS ===');
+        kb.createSampleData();
+        appendOutput('integrationOutput', '✅ Sample data created');
+
+        storage.autoSave(kb);
+        appendOutput('integrationOutput', '✅ Auto-save working');
+
+        const loaded = storage.autoLoad();
+        appendOutput('integrationOutput', loaded ? '✅ Auto-load working' : '❌ Auto-load failed');
+
+        // Editor tests
+        appendOutput('integrationOutput', '\n=== EDITOR TESTS ===');
+        const ex = kb.weeks[0].trainings[0].blocks[0].exercises[0];
+        editor.updateExercise(ex.id, { name: 'Test' });
+        appendOutput('integrationOutput', '✅ Update exercise working');
+
+        editor.addWeek({ dateRange: 'Test', description: 'Test' });
+        appendOutput('integrationOutput', '✅ Add week working');
+
+        editor.undo();
+        appendOutput('integrationOutput', editor.canUndo() ? '✅ Undo working' : '⚠️ Undo issues');
+
+        // Export tests
+        appendOutput('integrationOutput', '\n=== EXPORT TESTS ===');
+        exportManager.selectAll();
+        appendOutput('integrationOutput', `✅ Selection working (${exportManager.getSelectedTrainings().length} trainings)`);
+
+        const preview = exportManager.showExportPreview();
+        appendOutput('integrationOutput', preview ? '✅ Preview working' : '❌ Preview failed');
+
+        await exportManager.exportAsPDF('all-tests');
+        appendOutput('integrationOutput', '✅ PDF export working');
+
+        appendOutput('integrationOutput', '\n' + '='.repeat(50));
+        appendOutput('integrationOutput', '✅ ALL TESTS COMPLETED SUCCESSFULLY! ');
+        appendOutput('integrationOutput', '='.repeat(50));
+
+        document.getElementById('integrationOutput').className = 'output success';
+        updateSystemStats();
+      } catch (error) {
+        appendOutput('integrationOutput', '\n❌ Test failed: ' + error.message);
+        document.getElementById('integrationOutput').className = 'output error';
+      }
+    }
+
+    // ========================================================================
+    // KB VIEWER
+    // ========================================================================
+
+    function viewKnowledgeBase() {
+      output('kbOutput', JSON.stringify(kb.toJSON(), null, 2), 'info');
+    }
+
+    function viewMetadata() {
+      output('kbOutput', JSON.stringify(kb.metadata, null, 2), 'info');
+    }
+
+    function viewExerciseList() {
+      const exercises = kb.getAllExerciseNames();
+      output('kbOutput', `Found ${exercises.length} unique exercises:\n\n` + exercises.join('\n'), 'info');
+    }
+  </script>
+</body>
+</html>

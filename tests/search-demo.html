@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Search Demo</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      color: #2c3e50;
+      margin-bottom: 10px;
+    }
+
+    .subtitle {
+      color: #7f8c8d;
+      margin-bottom: 30px;
+    }
+
+    .filters {
+      background: #ecf0f1;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    .filter-group {
+      margin-bottom: 20px;
+    }
+
+    .filter-group:last-child {
+      margin-bottom: 0;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    input[type="text"],
+    select {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #bdc3c7;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="text"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 5px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .btn-primary {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #2980b9;
+    }
+
+    .btn-secondary {
+      background: #95a5a6;
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #7f8c8d;
+    }
+
+    .stats {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #e8f5e9;
+      border-radius: 5px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .stat {
+      flex: 1;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: #666;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .results {
+      margin-top: 30px;
+    }
+
+    .result-item {
+      background: white;
+      border: 2px solid #ecf0f1;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 15px;
+      transition: all 0.3s;
+    }
+
+    .result-item:hover {
+      border-color: #3498db;
+      box-shadow: 0 2px 8px rgba(52, 152, 219, 0.2);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .result-title {
+      font-size: 18px;
+      font-weight: 700;
+      color: #2c3e50;
+    }
+
+    .result-badge {
+      background: #3498db;
+      color: white;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .result-meta {
+      color: #7f8c8d;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .result-summary {
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .matched-exercises {
+      margin-top: 10px;
+      padding: 10px;
+      background: #fff3cd;
+      border-radius: 5px;
+      border-left: 3px solid #ffc107;
+    }
+
+    .matched-exercises strong {
+      color: #856404;
+    }
+
+    .autocomplete-results {
+      margin-top: 10px;
+      padding: 10px;
+      background: white;
+      border: 2px solid #3498db;
+      border-radius: 5px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .autocomplete-item {
+      padding: 8px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background 0.2s;
+    }
+
+    .autocomplete-item:hover {
+      background: #ecf0f1;
+    }
+
+    .no-results {
+      text-align: center;
+      padding: 40px;
+      color: #7f8c8d;
+    }
+
+    .performance-good {
+      color: #27ae60;
+    }
+
+    .performance-bad {
+      color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏋️ Training Search Demo</h1>
+    <p class="subtitle">Test the search and filtering system with mock training data</p>
+
+    <div class="filters">
+      <div class="filter-group">
+        <label for="includeExercises">Include Exercises (must have ALL):</label>
+        <input type="text" id="includeExercises" placeholder="Type to search exercises... (e.g., подтяг)">
+        <div id="includeAutocomplete" style="display: none;"></div>
+        <div id="includeSelected" style="margin-top: 10px;"></div>
+      </div>
+
+      <div class="filter-group">
+        <label for="excludeExercises">Exclude Exercises (must NOT have ANY):</label>
+        <input type="text" id="excludeExercises" placeholder="Type to search exercises... (e.g., броски)">
+        <div id="excludeAutocomplete" style="display: none;"></div>
+        <div id="excludeSelected" style="margin-top: 10px;"></div>
+      </div>
+
+      <div class="filter-group">
+        <label for="intensityMin">Intensity Range:</label>
+        <div style="display: flex; gap: 10px;">
+          <input type="number" id="intensityMin" placeholder="Min %" style="flex: 1;" min="0" max="100">
+          <input type="number" id="intensityMax" placeholder="Max %" style="flex: 1;" min="0" max="100">
+        </div>
+      </div>
+
+      <div class="filter-group">
+        <label for="setType">Set Type:</label>
+        <select id="setType">
+          <option value="">Any</option>
+          <option value="AMRAP">AMRAP</option>
+          <option value="rounds">Rounds</option>
+          <option value="every_x_min">Every X Minutes</option>
+          <option value="timed">Timed</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button class="btn-primary" onclick="performSearch()">🔍 Search</button>
+        <button class="btn-secondary" onclick="clearFilters()">✖ Clear Filters</button>
+      </div>
+    </div>
+
+    <div id="stats" style="display: none;" class="stats">
+      <div class="stat">
+        <div class="stat-label">Results</div>
+        <div class="stat-value" id="resultCount">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Search Time</div>
+        <div class="stat-value" id="searchTime">0ms</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Performance</div>
+        <div class="stat-value" id="performance">-</div>
+      </div>
+    </div>
+
+    <div class="results">
+      <div id="resultsContainer"></div>
+    </div>
+  </div>
+
+  <!-- Load dependencies -->
+  <script src="../app/js/filters.js"></script>
+  <script src="../app/js/search.js"></script>
+
+  <script>
+    // Initialize search with mock data
+    const search = new TrainingSearch();
+
+    // Store selected exercises
+    let selectedInclude = [];
+    let selectedExclude = [];
+
+    // Exercise autocomplete for include
+    document.getElementById('includeExercises').addEventListener('input', (e) => {
+      const query = e.target.value;
+      if (query.trim()) {
+        const matches = search.searchExercises(query);
+        showAutocomplete('includeAutocomplete', matches, 'include');
+      } else {
+        hideAutocomplete('includeAutocomplete');
+      }
+    });
+
+    // Exercise autocomplete for exclude
+    document.getElementById('excludeExercises').addEventListener('input', (e) => {
+      const query = e.target.value;
+      if (query.trim()) {
+        const matches = search.searchExercises(query);
+        showAutocomplete('excludeAutocomplete', matches, 'exclude');
+      } else {
+        hideAutocomplete('excludeAutocomplete');
+      }
+    });
+
+    function showAutocomplete(containerId, matches, type) {
+      const container = document.getElementById(containerId);
+      if (matches.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = '<div class="autocomplete-results">' +
+        matches.slice(0, 10).map(ex =>
+          `<div class="autocomplete-item" onclick="selectExercise('${ex}', '${type}')">${ex}</div>`
+        ).join('') +
+        '</div>';
+      container.style.display = 'block';
+    }
+
+    function hideAutocomplete(containerId) {
+      document.getElementById(containerId).style.display = 'none';
+    }
+
+    function selectExercise(exercise, type) {
+      if (type === 'include') {
+        if (!selectedInclude.includes(exercise)) {
+          selectedInclude.push(exercise);
+          updateSelectedExercises('includeSelected', selectedInclude, 'include');
+        }
+        document.getElementById('includeExercises').value = '';
+        hideAutocomplete('includeAutocomplete');
+      } else {
+        if (!selectedExclude.includes(exercise)) {
+          selectedExclude.push(exercise);
+          updateSelectedExercises('excludeSelected', selectedExclude, 'exclude');
+        }
+        document.getElementById('excludeExercises').value = '';
+        hideAutocomplete('excludeAutocomplete');
+      }
+    }
+
+    function updateSelectedExercises(containerId, exercises, type) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = exercises.map((ex, idx) =>
+        `<span style="display: inline-block; background: #3498db; color: white; padding: 5px 10px; margin: 5px; border-radius: 20px;">
+          ${ex}
+          <span onclick="removeExercise(${idx}, '${type}')" style="cursor: pointer; margin-left: 5px; font-weight: bold;">×</span>
+        </span>`
+      ).join('');
+    }
+
+    function removeExercise(index, type) {
+      if (type === 'include') {
+        selectedInclude.splice(index, 1);
+        updateSelectedExercises('includeSelected', selectedInclude, 'include');
+      } else {
+        selectedExclude.splice(index, 1);
+        updateSelectedExercises('excludeSelected', selectedExclude, 'exclude');
+      }
+    }
+
+    function performSearch() {
+      // Build filters
+      const filters = {};
+
+      if (selectedInclude.length > 0) {
+        filters.include = selectedInclude;
+      }
+
+      if (selectedExclude.length > 0) {
+        filters.exclude = selectedExclude;
+      }
+
+      const minIntensity = document.getElementById('intensityMin').value;
+      const maxIntensity = document.getElementById('intensityMax').value;
+      if (minIntensity || maxIntensity) {
+        filters.intensity = {
+          min: minIntensity ? parseInt(minIntensity) : 0,
+          max: maxIntensity ? parseInt(maxIntensity) : 100
+        };
+      }
+
+      const setType = document.getElementById('setType').value;
+      if (setType) {
+        filters.setType = setType;
+      }
+
+      // Perform search
+      const results = search.search(filters);
+
+      // Display results
+      displayResults(results);
+    }
+
+    function displayResults(results) {
+      // Show stats
+      document.getElementById('stats').style.display = 'flex';
+      document.getElementById('resultCount').textContent = results.totalResults;
+      document.getElementById('searchTime').textContent = results.searchTime.toFixed(2) + 'ms';
+
+      const perfElement = document.getElementById('performance');
+      if (results.performance.isOptimal) {
+        perfElement.textContent = '✓ Optimal';
+        perfElement.className = 'stat-value performance-good';
+      } else {
+        perfElement.textContent = '⚠ Slow';
+        perfElement.className = 'stat-value performance-bad';
+      }
+
+      // Display results
+      const container = document.getElementById('resultsContainer');
+
+      if (results.totalResults === 0) {
+        container.innerHTML = '<div class="no-results">No trainings found matching your filters.</div>';
+        return;
+      }
+
+      container.innerHTML = results.results.map(result => `
+        <div class="result-item">
+          <div class="result-header">
+            <div class="result-title">Week ${result.weekNumber}, Training ${result.trainingNumber}</div>
+            <div class="result-badge">${result.intensity}</div>
+          </div>
+          <div class="result-meta">
+            ${result.weekDateRange} • ${result.trainingDate} • ${result.weekDescription}
+          </div>
+          <div class="result-summary">
+            ${result.summary} • ${result.previewText}
+          </div>
+          ${result.matchedExercises.length > 0 ? `
+            <div class="matched-exercises">
+              <strong>Matched exercises:</strong> ${result.matchedExercises.join(', ')}
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function clearFilters() {
+      selectedInclude = [];
+      selectedExclude = [];
+      document.getElementById('includeExercises').value = '';
+      document.getElementById('excludeExercises').value = '';
+      document.getElementById('intensityMin').value = '';
+      document.getElementById('intensityMax').value = '';
+      document.getElementById('setType').value = '';
+      updateSelectedExercises('includeSelected', [], 'include');
+      updateSelectedExercises('excludeSelected', [], 'exclude');
+      hideAutocomplete('includeAutocomplete');
+      hideAutocomplete('excludeAutocomplete');
+
+      const results = search.clearFilters();
+      displayResults(results);
+    }
+
+    // Initial search to show all trainings
+    window.addEventListener('load', () => {
+      performSearch();
+    });
+  </script>
+</body>
+</html>

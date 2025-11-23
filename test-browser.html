@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Training Plan Parser - Browser Test</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #4CAF50;
+            padding-bottom: 10px;
+        }
+        .upload-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f9f9f9;
+            border-radius: 5px;
+            border: 2px dashed #ddd;
+        }
+        input[type="file"] {
+            padding: 10px;
+            font-size: 14px;
+        }
+        button {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .results {
+            margin-top: 20px;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1976D2;
+        }
+        .exercise-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .exercise-item {
+            padding: 5px;
+            border-bottom: 1px solid #eee;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            max-height: 400px;
+        }
+        .loading {
+            display: none;
+            color: #2196F3;
+            font-style: italic;
+        }
+        .loading.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏋️ Training Plan Parser - Browser Test</h1>
+
+        <div class="upload-section">
+            <h2>Upload Training File</h2>
+            <p>Select your training.xlsx file to parse:</p>
+            <input type="file" id="fileInput" accept=".xlsx" />
+            <br>
+            <button id="parseButton" onclick="handleParse()" disabled>Parse File</button>
+            <div class="loading" id="loading">Parsing...</div>
+        </div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <!-- Load SheetJS from CDN -->
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+    <!-- Load our modules -->
+    <script src="app/js/data-model.js"></script>
+    <script src="app/js/parser.js"></script>
+
+    <script>
+        let knowledgeBase = null;
+
+        // Enable button when file is selected
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const parseButton = document.getElementById('parseButton');
+            parseButton.disabled = !e.target.files.length;
+        });
+
+        async function handleParse() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file first');
+                return;
+            }
+
+            const resultsDiv = document.getElementById('results');
+            const loading = document.getElementById('loading');
+            const parseButton = document.getElementById('parseButton');
+
+            try {
+                // Show loading
+                loading.classList.add('active');
+                parseButton.disabled = true;
+                resultsDiv.innerHTML = '';
+
+                // Parse the file
+                const startTime = performance.now();
+                knowledgeBase = await parseTrainingFile(file);
+                const endTime = performance.now();
+                const parseTime = (endTime - startTime).toFixed(2);
+
+                // Display results
+                displayResults(knowledgeBase, parseTime);
+
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Parsing Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                loading.classList.remove('active');
+                parseButton.disabled = false;
+            }
+        }
+
+        function displayResults(kb, parseTime) {
+            const stats = kb.getStatistics();
+
+            const html = `
+                <div class="success">
+                    <h2>✅ Parsing Successful!</h2>
+                    <p>Completed in ${parseTime}ms</p>
+                </div>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Weeks</div>
+                        <div class="stat-value">${stats.totalWeeks}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Trainings</div>
+                        <div class="stat-value">${stats.totalTrainings}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Blocks</div>
+                        <div class="stat-value">${stats.totalBlocks}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Total Exercises</div>
+                        <div class="stat-value">${stats.totalExercises}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Unique Exercises</div>
+                        <div class="stat-value">${stats.uniqueExercises}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Parse Time</div>
+                        <div class="stat-value">${parseTime}ms</div>
+                    </div>
+                </div>
+
+                <h3>📊 Set Types Found</h3>
+                <p>${kb.getAllSetTypes().join(', ')}</p>
+
+                <h3>💪 Top 10 Exercises</h3>
+                <div class="exercise-list">
+                    ${stats.topExercises.map(ex => `
+                        <div class="exercise-item">
+                            <strong>${ex.name}</strong>: ${ex.count} times
+                        </div>
+                    `).join('')}
+                </div>
+
+                <h3>📋 All Unique Exercises (${stats.uniqueExercises} total)</h3>
+                <div class="exercise-list">
+                    ${kb.getAllExerciseNames().map(name => `
+                        <div class="exercise-item">${name}</div>
+                    `).join('')}
+                </div>
+
+                <h3>🔍 Sample Week Data</h3>
+                <pre>${JSON.stringify(kb.weeks[0], null, 2)}</pre>
+
+                <button onclick="testSearch()">Test Search Function</button>
+                <button onclick="testJSON()">Test JSON Export/Import</button>
+                <button onclick="downloadJSON()">Download JSON</button>
+
+                <div id="testResults"></div>
+            `;
+
+            document.getElementById('results').innerHTML = html;
+        }
+
+        function testSearch() {
+            if (!knowledgeBase) return;
+
+            const searchTerm = prompt('Enter exercise name to search for:', 'австралийские');
+            if (!searchTerm) return;
+
+            const results = knowledgeBase.searchExercises(searchTerm);
+
+            const html = `
+                <div style="margin-top: 20px; padding: 15px; background: #fff3cd; border-radius: 5px;">
+                    <h4>Search Results for "${searchTerm}"</h4>
+                    <p>Found ${results.length} results</p>
+                    <pre>${JSON.stringify(results, null, 2)}</pre>
+                </div>
+            `;
+
+            document.getElementById('testResults').innerHTML = html;
+        }
+
+        function testJSON() {
+            if (!knowledgeBase) return;
+
+            const json = knowledgeBase.toJSON();
+            const kb2 = new KnowledgeBase();
+            kb2.fromJSON(json);
+
+            const success = kb2.weeks.length === knowledgeBase.weeks.length &&
+                           kb2.metadata.totalExercises === knowledgeBase.metadata.totalExercises;
+
+            const html = `
+                <div style="margin-top: 20px; padding: 15px; background: ${success ? '#d4edda' : '#f8d7da'}; border-radius: 5px;">
+                    <h4>${success ? '✅' : '❌'} JSON Export/Import Test</h4>
+                    <p>Original weeks: ${knowledgeBase.weeks.length}</p>
+                    <p>Imported weeks: ${kb2.weeks.length}</p>
+                    <p>Original exercises: ${knowledgeBase.metadata.totalExercises}</p>
+                    <p>Imported exercises: ${kb2.metadata.totalExercises}</p>
+                    <p><strong>${success ? 'Test passed!' : 'Test failed!'}</strong></p>
+                </div>
+            `;
+
+            document.getElementById('testResults').innerHTML = html;
+        }
+
+        function downloadJSON() {
+            if (!knowledgeBase) return;
+
+            const json = JSON.stringify(knowledgeBase.toJSON(), null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'training-data.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Auto-select the training.xlsx file if running locally
+        console.log('Training Plan Parser loaded successfully!');
+        console.log('SheetJS version:', XLSX.version);
+    </script>
+</body>
+</html>
